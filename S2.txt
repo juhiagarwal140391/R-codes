@@ -1,0 +1,147 @@
+library(data.table)
+ 
+## Loading required packages 
+library(car)
+library(data.table)
+library(sqldf)
+library(tidyr)
+library(dplyr)
+library(xlsx)
+library(ggplot2)
+
+#### Loading dataset for linear regression 
+
+raw_data <- read.csv('Linear Regression Data _ Settlements.csv',stringsAsFactors = FALSE)
+
+# Checking the variables 
+str(raw_data)
+
+# Checking no of rows where NA is present 
+raw_data <- as.data.table(raw_data)
+nrow(raw_data[!complete.cases(raw_data)]) # there are 88 rows with NA 
+
+  ####### Missing Value Imputation ##########
+sapply(raw_data,function(x) sum(is.na(x)))
+
+A#Product.ID     Settlement.cost      Original.price      Product.volume 
+#0                   0                   0                   0 
+#No.characteristics          Popularity          Efficiency Adjusted.efficiency 
+#0                   0                  28                  28 
+#Weight               Dim.1               Dim.2               Dim.3 
+#4                   4                 857                 861 
+
+# Get missing value percentage for all the variables 
+raw_data %>% summarize_all(funs(sum(is.na(.))/length(.)))
+
+#Product.ID Settlement.cost Original.price Product.volume No.characteristics Popularity
+#1          0               0              0              0                  0          0
+#Efficiency Adjusted.efficiency      Weight       Dim.1     Dim.2     Dim.3
+#1 0.01635514          0.01635514 0.002336449 0.002336449 0.5005841 0.5029206
+ #### Removing Dim.2 and Dim.3 as those have more than 50% missing values. 
+raw_data$Dim.2 <- NULL
+raw_data$Dim.3 <- NULL
+
+# Checking correlatin matrix 
+raw_data <- as.data.frame(raw_data)
+
+# Filling all the missing values with their corrosponing mean 
+NAtoMean <-function(x) replace(x,is.na(x), mean(x,na.rm=TRUE))
+raw_data[] <- lapply(raw_data, NAtoMean)
+
+# converting back to data.table 
+raw_data <- as.data.table(raw_data)          
+
+# Checking on outliers 
+quantile(raw_data$Settlement.cost,c(0.95,0.99,1))
+quantile(raw_data$Original.price,c(0.95,0.99,1))
+quantile(raw_data$Product.volume,c(0.95,0.99,1))
+
+### Question No - 01 # Splitting into development and validation set 
+
+set.seed(1000)
+temp<-raw_data
+temp$rand<-runif(nrow(temp))
+dev<-temp %>% filter (temp$rand<=0.7)
+val<-temp %>% filter (temp$rand>0.7)
+
+### Question No - 02.a #### Correlation matrix 
+corr<-cor(dev) 
+corr<-as.data.frame(corr)
+write.xlsx(corr, file="arpan_SL201.xlsx", sheetName = "CORR_DEV", row.names = FALSE)
+round(corr,2)
+### Question No - 02.b Building VIF 
+
+var_names <- colnames(raw_data)
+var_names
+fit <- lm(Settlement.cost ~ Original.price + Product.volume + No.characteristics + Popularity +Efficiency +Adjusted.efficiency + Weight + Dim.1, data=dev)
+summary(fit)
+vif_dev <- vif(fit)
+# VIF Values 
+#Original.price      Product.volume  No.characteristics          Popularity 
+#2.673940            7.537798            4.717985                 5.183223 
+#Efficiency        Adjusted.efficiency    Weight               Dim.1 
+#11.032170           11.401949            3.738443            2.143385 
+# Although question says to build model on VIF < 2.5, I am choosing cut-off as 3. Otherwise I have only one variable which meets the cut off 
+# Selected variables are Original.price, NO.characterstics. weight and Dim.1 
+
+fit_final <- lm(Settlement.cost ~ Original.price + Dim.1, data=dev)
+
+vif(fit_final) # checking VIF again
+
+#Original.price No.characteristics             Weight              Dim.1 
+#1.495391           2.343426           2.661939           1.900814 
+
+durbinWatsonTest(lm(Settlement.cost ~ Original.price +  Dim.1, data=dev))
+#lag Autocorrelation D-W Statistic p-value
+# 1       0.1492834      1.701262       0
+#Alternative hypothesis: rho != 0
+
+# Getting model parameters  
+anova(fit_final) # anova table 
+summary(fit_final) # show results
+coefficients(fit_final) # model coefficients
+
+# Model MAPE
+
+x <- fitted(fit_final) # predicted values
+y <- dev$Settlement.cost
+m_error <- y-x
+abs_erro <- abs(m_error)/y
+model_MAPE <- mean(abs_erro)
+
+residuals(fit_final) # Looking at residuals
+influence(fit_final) # Understanding influence of any particular observation 
+
+## Getting the plots  
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(fit_final)
+
+
+
+# Beta stablity
+
+fit_val <- lm(Settlement.cost ~ Original.price + Dim.1, data=val)
+coefficients(fit_val) # model coefficients
+coefficients(fit) # model coefficients
+#compare both sets of coefficietns for consitent betas(within +/- 20% deviance)
+summary(fit_val) # show results
+
+#score validation sample using finalised dev model
+val_score<-predict(fit_final, val)
+
+#Find R square, actual vs predicted and MAPE
+val_new<-as.data.table(val[,"Settlement.cost"]) # actual outcome
+val_new$pred<-val_score
+val_new$error<-val_new$V1-val_new$pred
+val_new$error_square<-val_new$error^2
+val_new$temp<-mean(val_new$V1)
+val_new$tss<-(val_new$V1-val_new$temp)^2
+
+Rsq<- 1-sum(val_new$error_square)/sum(val_new$tss)
+ggplot(val_new,aes(x=V1,y=pred))+geom_point()
+#MAPE_VAL
+val_new$abs_perc_err<-abs(val_new$error/val_new$V1)
+temp<-val_new %>% filter(abs_perc_err != Inf)
+MAPE<-mean(temp$abs_perc_err)
+
+

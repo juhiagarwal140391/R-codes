@@ -1,0 +1,255 @@
+install.packages("dplyr")
+library(dplyr)
+install.packages("tidyr")
+library(tidyr)
+install.packages("data.table")
+library(data.table)
+install.packages("ISLR")
+library(ISLR)
+head(iris)
+install.packages("ggplot2")
+install.packages("lazyeval")
+library(ggplot2)
+library(lazyeval)
+require(reshape2)
+library(reshape2) 
+install.packages("gmodels")
+library(gmodels)
+
+#question1
+
+iris_new = mutate(iris,Sepal.Length_new=  (Sepal.Length- min(Sepal.Length)/max(Sepal.Length)- min(Sepal.Length)))
+
+iris_new = mutate(iris_new,Sepal.Width_new=  (Sepal.Width- min(Sepal.Width)/max(Sepal.Width)- min(Sepal.Length)))
+
+iris_new = mutate(iris_new,Petal.Length_new=  (Petal.Length- min(Petal.Length)/max(Petal.Length)- min(Petal.Length)))
+
+iris_new = mutate(iris_new,Petal.Width_new=  (Petal.Width- min(Petal.Width)/max(Petal.Width)- min(Petal.Width)))
+
+iris_new1<- select(iris_new, ends_with("new")) %>% apply(2,mean)
+iris_new1 # this object contains mean valus of derived variables 
+
+#question2
+
+head(mtcars)
+a=rownames(mtcars)
+mtcars$Rname=rownames(mtcars)
+mtcars$Firstname=sapply(mtcars$Rname,function(x) {unlist(strsplit(x," "))[[1]]})
+typeof(mtcars)
+mtcars=data.table(mtcars)
+mtcars%>%group_by(Firstname)%>%summarise(avg=mean(wt))%>%filter(avg==min(avg))%>%select(Firstname)
+
+## Question 3 
+
+x1 <- as.data.frame(Titanic)
+titanic1 <- as.data.table(Titanic)
+titanic2 <-  titanic1 %>% filter(Survived == "Yes") %>% group_by(Class,Age) %>% select(Class,Age,Freq) %>% summarise_all(sum) %>% arrange(Freq) %>% spread(Age,Freq)
+titanic2
+
+#Question 4
+for(a in (0:1000)){
+  # print(a)
+  for(b in (0:a)){
+    # print(a+b)
+    
+    for(c in (0:b)){
+      # print(a+b+c)
+      if(a^2+b^2==c^2 && a+b+c == 1000){ #c^2+b^2==a^2 && 
+        print(paste(a,b,c, sep = ","))
+      }
+    }
+  }
+}
+
+200^2+375^2
+#Question 5
+test_data <- read.csv(file="C:/Users/juhi.agarwal/Desktop/R 201 - Files/Test_data.csv",stringsAsFactors = F)
+x <- unique(test_data$BILL_NO)
+
+test_data_1 <- test_data %>% 
+  select(Category,BILL_NO) %>%
+  unique() %>%
+  spread(Category,Category) %>%
+  mutate(BodyHair = (ifelse(BODY=="BODY" & HAIR == "HAIR" & is.na(FLOOR),1,0)),
+         FloorHair = (ifelse(FLOOR=="FLOOR" & HAIR == "HAIR" & is.na(BODY),1,0)),
+         BodyFloor = (ifelse(BODY=="BODY" & FLOOR == "FLOOR" & is.na(HAIR),1,0)),
+         BodyOrHair = (ifelse((BODY=="BODY" | HAIR == "HAIR") ,1,0)),
+         FloorOrHair = (ifelse( (HAIR == "HAIR" | FLOOR == "FLOOR"),1,0)),
+         BodyOrFloor = (ifelse((BODY=="BODY"| FLOOR == "FLOOR"),1,0)),
+         OnlyBody = (ifelse(BODY=="BODY" & is.na(HAIR) & is.na(FLOOR),1,0)),
+         OnlyHair = (ifelse(is.na(BODY) & HAIR == "HAIR" & is.na(FLOOR),1,0)),
+         OnlyFloor = (ifelse(is.na(BODY) & is.na(HAIR) & FLOOR == "FLOOR",1,0)),
+         All = (ifelse(BODY=="BODY" & HAIR == "HAIR" & FLOOR == "FLOOR",1,0))
+  )
+test_data_2 <- test_data_1 %>% select(5:13) %>% summarize_all(sum,na.rm=T)
+test_data_2%>%mutate(affBH=BodyHair/BodyOrHair,affBF=BodyFloor/BodyOrFloor,affHF=FloorHair/FloorOrHair)
+typeof(test_data_2)
+
+
+#5B
+cat <- unique(test_data$Category)
+cat[1]
+i = 1
+j = 2
+
+as.character(test_data$Category)
+test_data_5B <- test_data %>% 
+  filter(Category == c(cat[i],cat[j])) %>%
+  select(BILL_NO,Category,LINE_VAL) %>%
+  group_by(BILL_NO,Category) %>%
+  summarize(x = sum(LINE_VAL)) %>%
+  mutate(l=length(BILL_NO))
+unique(test_data_5B$Category)
+
+test_data_5B <- as.data.table(test_data_5B)               
+test_data_5B1 <- test_data_5B[, Category1 := ifelse(l == 2,"Together",Category)]
+test_data_5B2 <- test_data_5B1[,.(Sales = sum(x,na.rm=TRUE)),by = "Category1"]
+str(test_data_5B)
+
+smart_fun <- function(dt,i,j){
+  as.character(dt$Category)
+  test_data_5B <- dt %>% 
+    filter(Category == c(cat[i],cat[j])) %>%
+    select(BILL_NO,Category,LINE_VAL) %>%
+    group_by(BILL_NO,Category) %>%
+    summarize(x = sum(LINE_VAL)) %>%
+    mutate(l=length(BILL_NO))
+  
+  unique(test_data_5B$Category)
+  
+  test_data_5B <- as.data.table(test_data_5B)               
+  test_data_5B1 <- test_data_5B[, Category1 := ifelse(l == 2,"Together",Category)]
+  
+  
+  test_data_5B2 <- test_data_5B1[,.(Sales = sum(x,na.rm=TRUE)),by = "Category1"]
+}
+
+abc <- smart_fun(test_data,1,2)
+abc
+
+#question 6
+library(data.table)
+set.seed(45)
+DT <- data.table(RF  = 1:10,
+                 S_1 = 11:20,
+                 S_2 = 21:30,
+                 addCol = rnorm(10)) 
+
+
+
+
+DT[,.(RF,S_1-RF,S_2-RF,addCol)]
+#Quest7
+Salaries=read.csv(file="C:/Users/juhi.agarwal/Desktop/R 201 - Files/Salaries.csv",header =TRUE)
+
+Salaries%>% group_by(playerID)%>% summarize(diff_sal=max(salary)-min(salary))
+
+ #Ques8 
+ set.seed(45)
+ DT <- data.table(ID = paste0("ID",rep(1:5,each=2)),
+                  level= rep(c("CTRL","CTRL","ID1","ID2","ID3"),2),
+                  var_1 = 1:10, 
+                 val_2 = rnorm(10))
+
+DT%>%group_by(ID)%>%summarize(V1=mean(var_1),V2=mean(val_2))
+ 
+#Ques9
+ DT <- data.table("a"=1:5,
+                  "b"=2:6,
+                  "c"=3:7)
+DT%>%summarize(mean_a=mean(a),mean_b=mean(b),sd_a=sd(a),sd_b=sd(b))
+#question 10.1
+dt <- data.table( a= c("30JAN14:23:16:00","23MAY12:02:00:00"), 
+                  b=c("03AUG09:00:00:00","13JUN12:02:00:00"), 
+                  c=c("31JAN14:15:19:00","23MAY12:00:00:00"))
+typeof(dt)
+lapply(dt,strptime(dt,"%d%B%y:%H:%M:%S"))
+
+#question 10.2
+
+data <-
+  data.frame(
+    shoptype=c("A","B","B"),
+    city=c("bah", "bah", "slah"),
+    sale=c("type cheese; price 200", "type ham; price 150","type cheese; price 100" )) %>%
+  tbl_df()
+
+a=separate(data,sale,into=c("type","price"),sep="; price")
+a
+b=separate(a,type,into=c("del","type"),sep=" ")
+b[-3]
+
+#quest 11
+library(ISLR)
+dtcollege = data.table(College, keep.rownames = T)
+head(dtcollege)
+#11a
+dtcollege[!(Expend>=8000 & Expend <=14000),]
+
+#11b
+head(dtcollege[order(-Top10perc)],10)
+
+#11c
+new_dtcollege=dtcollege%>%mutate(enrolment_ratio=Enroll/Accept)
+new_dtcollege%>%arrange(desc(enrolment_ratio))%>%slice(1:10)
+
+
+
+#11d
+dtcollege%>%mutate(undergrad_ratio=F.Undergrad/P.Undergrad)%>%arrange(desc(undergrad_ratio))%>%slice(1:10)
+
+#11e
+
+dtcollege[(Apps<1000 & Top10perc>20) |(Apps<1000 & Top25perc>30),.N]
+
+#QUESTION 12
+Measure_File=read.csv(file="Measure_File.csv",header=TRUE)
+Measure_File=data.table(Measure_File)
+#12a
+newMeasureFile=Measure_File[,seq(.N),by=.(ID)]
+
+
+#12b a
+#typeof(Measure_File$Vals_1)
+
+Measure_File[,sapply(.SD,quantile,probs=c(0.4,0.8)),.SDcols=grep("Vals",colnames(Measure_File))]
+mutate_each(_flag=function(x){if(x)})
+#12b b
+file <- data.table(file)
+y<-1:nrow(file)
+new_col <- function(x){
+  p = quantile(x, probs=0.4)
+  q=  quantile(x, probs=0.8)
+  
+  for(i in 1:length(x)){
+    
+    if (x[i] < p){ 
+      y[i] <<- "L"}
+    
+    else if (x[i] < q ){
+      y[i] <<- "M"}
+    
+    else {
+      y[i] <<- "H"}
+  }
+  return(y)
+}
+head(file)
+abc<-grep("Vals",colnames(file),value=TRUE) 
+abc
+xz<-paste0(abc,"_flag")
+xz
+
+file[,(xz):=lapply(.SD,new_col),.SDcols=grep("Vals",colnames(file))]
+
+#question 13
+
+WorldPhones=read.csv(file="WorldPhones.csv")
+WorldPhones=data.table(WorldPhones)
+WorldPhones$rname=rownames(WorldPhones)
+WorldPhones
+
+dft2=melt(WorldPhones,id="rname")
+ggplot(dft2,aes(x=rname,y=value,color=variable))+geom_point()
+
+
