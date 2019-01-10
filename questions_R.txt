@@ -1,0 +1,332 @@
+BF=data.frame(name=c("juhi","aditi","arti","rubi","nitin"),location=c("HK","Noida","Pune","Delhi","HK"),phn=c(101,102,103,104,105),team=c("A","B","C","D","A"),spouse=c("nitin","Vaish","Abhishek","pushkar","juhi"))
+BF
+
+Others=data.frame(name=c("AA","BB"),location=c("A","B"),phn=c(111,222),team=c("B","C"),spouse=c("NA","CC"))
+
+merge(BF,Others,by="team")## like inner join
+
+BFOthers=rbind(BF,Others)
+Data1=BF[1:4,1:4]
+Team
+DF=data.frame(team=c("A","B","C","D","E"),teacher=c("AAA","BBB","CCC","DDD","EEE"))
+DF3=data.frame(name=c("juhi","aditi"),nickname=c("lalli","gudiya"))
+
+
+merge(BF,DF3,all=TRUE) #full outer join
+
+
+x=data.frame(k1=c(NA,NA,3,4,5),k2=c(1,NA,NA,4,5),data.x=1:5)
+
+y=data.frame(k1=c(NA,2,NA,4,5),k2=c(NA,NA,3,4,5),data.y=1:5)
+
+merge(x,y,by=c("k1","k2"))
+merge(x,y,all=TRUE)
+
+merge(x,y,all.x=TRUE)
+
+merge(x,y,all.y=TRUE)
+merge(x,y,by.x="data.x",by.y="data.y")#condition is data.x=data.y
+
+
+
+matrixa=matrix(c(1:10,11:20),nrow=10,ncol=2)
+
+apply(matrixa,2,mean)
+
+
+matrixb=matrix(c(2,3,4,5,NA,7,8,9,10,11),nrow=5)
+
+apply(matrixb,2,mean)
+
+as.data.frame(apply(matrixb,2,mean))# will give resul as data frame
+
+apply(matrixb,2,min,na.rm=TRUE)#to remove NA values use na.rm
+
+
+##naming the dimensions of a matrix
+star_wars_matrix <- matrix(box_office, nrow = 3, byrow = TRUE,
+
+dimnames = list(c("A New Hope", "The Empire Strikes Back", "Return of the Jedi"),
+c("US", "non-US")))
+
+worldwide_vector <- rowSums(star_wars_matrix)
+
+
+# Select the non-US revenue for first two movies
+
+non_us_some <- all_wars_matrix[1:2,2]
+
+##If else
+a=13
+
+if(a>12)
+{
+
+print("more than a dozen")
+
+}
+else if(a==12)
+
+{
+print("a dozen")
+
+}
+else
+
+{
+print("less")
+
+}
+
+i=5
+if(i%%2==0)
+{
+print(c(i,"even"))
+}else
+{print(c(i,"odd"))
+}
+
+##For loop
+for(i in c(1,2,3,4))
+{
+print(i);
+}
+
+for(i in 1:10)
+{
+if(i==3) break
+print(c(i," current sample from loop1"))
+}
+
+f2=function(x,y)
+
+{
+  
+z1=x+y
+  
+z2=x*y
+  
+z3=x^y
+  
+return(c(z1,z2,z3))
+
+##list(z1,z2,z3) can be used so that we can access the elements outside 
+}
+
+f2(2,3)
+
+##subsetting data using functions
+x=data.frame(k1=c(NA,NA,3,4,5),k2=c(1,NA,NA,4,5),data.x=1:5)
+subsetdf=function(df,st,end)
+
+{
+  
+df.subset=tail(head(df,n=end),n=(end-st+1))
+  return(df.subset)
+ 
+}
+  
+  
+subsetdf(x,3,5)
+
+
+http://www.statmethods.net/advgraphs/axes.html for graph annotations
+
+
+Generate a random number between 5.0 and 7.5
+
+If you want to generate a decimal number where any value (including fractional values) between the stated minimum and maximum is equally likely, use the runif function.  This function generates values from the Uniform distribution.  Here's how to generate one random number between 5.0 and 7.5:
+
+    > x1 <- runif(1, 5.0, 7.5)
+    > x1
+    [1] 6.715697
+
+
+# Variables related to your last day of recordings
+
+medium <- "LinkedIn"
+
+num_views <- 14
+
+
+# Control structure for medium
+
+if (medium == "LinkedIn") 
+{
+  print("Showing LinkedIn information")
+
+} else if (medium == "Facebook") {
+
+print( "Showing Facebook information")
+  
+# Add code to print correct string when condition is TRUE
+
+} else {
+  print("Unknown medium")
+}
+x <- matrix(1:6, 2, 3)
+x[1, , drop = FALSE]
+
+# Control structure for num_views
+
+
+if (num_views > 15) {
+  print("You're popular!")
+} else if (num_views <= 15 & num_views > 10) {
+  
+# Add code to print correct string when condition is TRUE
+print("Your number of views is average")
+} else {
+  print("Try to be more visible!")
+}
+is.logical(NA) 
+ x <- c("a", "b", "c", "d")
+
+for(i in 1:4) {
+
+ ## Print out each element of 'x'
+
+ print(x[i])
+
+}
+x <- list(2, "a", "b", TRUE)
+x[[1]]
+x<-c(1,2,0,-1) 
+as.logical(x)
+
+c(1, 2, 3, 4) == c(1, c(2, c(3, c(4))))
+
+
+x <- c(3, 5, 1, 10, 12, 6)
+x[x < 6] <- 0
+x
+
+
+x<-c(1:3)
+y<-c(2:3) 
+x*y
+
+
+x <- random (1, 0, 10)
+
+if(x > 3) {
+
+    y <- 10
+
+} else {
+
+    y <- 0
+
+}
+
+
+x <- run(1, 0, 10)
+
+if(x > 3) {
+
+    y <- 10
+
+} else {
+
+    y <- 0
+
+}
+
+x <- runif(1, 0, 10)
+
+if(x > 3) {
+
+    y <- 10
+
+} else {
+
+    y <- 0
+
+}
+y
+
+
+y <- "meat"
+
+switch(y, fruit = "banana", vegetable = "broccoli", "Neither")
+
+x<-c(1:10)
+x[-length(x)]
+
+
+ x <- list(a = list(9, 11, 13),b = c(3.14, 2.56))
+ x[[c(1, 2)]]
+ 
+ x[[c(2, 1,1)]]
+ 
+ x<-c(20:30)
+ which(x>28)
+ 
+ 
+  x <- 3
+
+switch(2, 2+2, mean(1:10), rnorm(5))
+
+x <- c(10, 20, 30)
+x[1]
+
+x=c("brown","black","green")
+color=factor(x)
+as.numeric(x)
+as.character(as.numeric(x))
+as.integer(as.character(x))
+
+x=c(1, 2, 4, NA, NaN) 
+length(x)
+
+BF=data.frame(name=c("juhi","aditi","arti","rubi","nitin"),location=c("HK","Noida","Pune","Delhi","HK"))
+d=cbind(BF,data.frame(name=c("as","as")))
+df=BF
+a=c(1, 2, "abc", True)
+typeof(a)
+
+
+df[c(-1,-1)]
+df[,df$name=="juhi"]
+
+which(1:36 %in% 6:10)
+
+ for(i in 1:10) {
+
+ print(i)
+
+}
+
+df[1,]
+
+
+for(i in 1:100) {
+
+             if(i <= 20) {
+
+                next
+
+      }
+print(i)
+}
+
+df[,1]
+
+a=matrix(1:6,nrow=2)
+length(a)
+
+
+for(i in 1:100) {
+
+      print(i)
+
+              if(i > 20) {
+
+               break
+
+       }
+
+}
+
+x=c(0:10)
+as.character(x)

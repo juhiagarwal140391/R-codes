@@ -1,0 +1,32 @@
+order using rank
+
+## Setup example to match Justin's example
+set.seed(1)
+x <- sample(1:50, 30) 
+
+## Make a vector to store the sorted x values
+xx = integer(length(x))
+
+## i is the index, ir is the ith "rank" value
+i = 0
+for(ir in rank(x)){
+    i = i + 1
+    xx[ir] = x[i]
+}
+
+all(xx==x[order(x)])
+[1] TRUE
+
+-------------------------------
+
+applying rank on Data frame
+--------------------------
+
+##to chack if a package is installed or not
+is.installed <- function(mypkg){
+ 
+is.element(mypkg, installed.packages()[,1])
+  } 
+
+ 
+is.installed("smartbind")

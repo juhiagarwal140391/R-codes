@@ -1,0 +1,17 @@
+finding unique values
+rapply(datasetName,function(x)length(unique(x)))
+--this will give count of unique values in each column
+--rapply is recursive lapply
+
+
+
+good link for convering to categorical variables
+
+link for supervised understanidng
+http://in.mathworks.com/help/stats/supervised-learning-machine-learning-workflow-and-algorithms.html?requestedDomain=in.mathworks.com
+
+Deleting multiple columns
+DT[ ,`:=`(x = NULL, y = NULL)]
+
+adding multiple columns
+DT[ ,`:=`(x = letters, y = "Male")]
