@@ -1,0 +1,91 @@
+
+lib.location        <- "Z:\\Analytics\\Users\\jagarwal\\R_Libs"
+workspace.location  <- "Z:/Analytics/Users/jagarwal/workspace/"
+#Setting up personal library
+#---------------------------
+.libPaths(c(.libPaths(), lib.location))
+
+#Setting up worskspace
+#---------------------
+setwd(workspace.location)
+
+
+#install.packages("RPostgreSQL", lib = lib.location)
+#install.packages("h2o", lib = lib.location)
+#install.packages("data.table", lib = lib.location)
+#install.packages("frailtypack", lib = lib.location)
+
+#require("RPostgreSQL",  lib.loc = lib.location)
+#require("dplyr",  lib.loc = lib.location)
+#require("RODBC",  lib.loc = lib.location)
+#require("h2o",  lib.loc = lib.location)
+require("data.table",  lib.loc = lib.location)
+require("mlr",        lib.loc = lib.location)
+require("frailtypack",        lib.loc = lib.location)
+require("sqldf", lib.loc = lib.location)
+
+require("smbinning",  lib.loc = lib.location)
+require("reshape2",   lib.loc = lib.location)
+require("FSelector", lib.loc = lib.location)
+require("Boruta",     lib.loc = lib.location)
+require("caret",     lib.loc = lib.location)
+require("rFerns",     lib.loc = lib.location)
+require("rpart",     lib.loc = lib.location)
+require("ROCR",     lib.loc = lib.location)
+require("ROSE",     lib.loc = lib.location)
+require("randomForest",     lib.loc = lib.location)
+require("caretEnsemble",     lib.loc = lib.location)
+require("gbm",     lib.loc = lib.location)
+require('doParallel',     lib = lib.location)
+require("xgboost",  lib.loc = lib.location)
+require("dplyr",  lib.loc = lib.location)
+require("fmsb",  lib.loc = lib.location)
+
+
+validationSet <- fread("hha_variables2017juhi.csv")
+head(validationSet)
+str(validationSet)
+summarise(validationSet)
+summary(validationSet)
+
+validationSet=data.frame(validationSet)
+nums <- sapply(validationSet, is.numeric)
+num=validationSet[,nums]
+cat=validationSet[,!nums]
+colnames(num)
+colnames(cat)
+View(num)
+
+cts=c()
+cts_catg=c()
+cat=colnames(cat)
+for (i in colnames(num)) {
+  if (length(unique(num[,i]))>10)
+  cts=c(cts,i)
+    else {
+      if (length(unique(num[,i]))>1) {
+      cts_catg=c(cts_catg,i)} else {
+        print(i)
+      }}
+}
+d_cts=num[,cts[-c(1,2,3)]]
+/*function(x)
+{quant=quantiles(x,c(0.95))
+x[x>quantiles[1]]=quantiles[1]
+x}
+fun(d_cts)
+
+*/
+fun <- function(x){
+  d_cts[d_cts[x]>quantile(d_cts[,x],0.95,na.rm=TRUE),x] <- quantile(d_cts[,x],0.95,na.rm=TRUE)
+}
+for (i in colnames(d_cts)) 
+{print(i)
+  fun(i)}
+
+d_cts=data.table(d_cts)
+d_cts[is.na(d_cts)]=mean(d_cts, na.rm=TRUE)  
+cts_catg
+d_cts_catg[is.na(d_cts)]=mean(d_cts, na.rm=TRUE)  
+x="cig_niche"
+d_cts[d_cts[x]>quantile(d_cts[,x],0.95,na.rm=TRUE),x] <- quantile(d_cts[,x],0.95,na.rm=TRUE)

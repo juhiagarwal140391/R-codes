@@ -1,0 +1,163 @@
+#Some Global Declarations - Please change as per your local 
+#library and workspace locations
+#-----------------------------------------------------------
+lib.location        <- "Z:\\Analytics\\Users\\sjha\\R_Libs"
+#Z:\Analytics\Projects\Advanced Analytics\Analytics Consulting\Project\Retail Acquisition Models\Retail - models\Home hardware\Model Sample 3
+workspace.location  <- "Z:/Analytics/Projects/Advanced Analytics/Analytics Consulting/Project/Retail Acquisition Models/workspace/"
+
+#Setting up personal library
+#---------------------------
+.libPaths(c(.libPaths(), lib.location))
+
+#Setting up worskspace
+#---------------------
+setwd(workspace.location)
+
+#Library Installation & Loading 
+#------------------------------
+#install.packages("RPostgreSQL", lib = lib.location)
+#install.packages("h2o", lib = lib.location)
+#install.packages("data.table", lib = lib.location)
+#install.packages("frailtypack", lib = lib.location)
+
+#require("RPostgreSQL",  lib.loc = lib.location)
+#require("dplyr",  lib.loc = lib.location)
+#require("RODBC",  lib.loc = lib.location)
+#require("h2o",  lib.loc = lib.location)
+require("data.table",  lib.loc = lib.location)
+require("mlr",        lib.loc = lib.location)
+require("frailtypack",        lib.loc = lib.location)
+require("sqldf", lib.loc = lib.location)
+
+require("smbinning",  lib.loc = lib.location)
+require("reshape2",   lib.loc = lib.location)
+require("FSelector", lib.loc = lib.location)
+require("Boruta",     lib.loc = lib.location)
+require("caret",     lib.loc = lib.location)
+require("rFerns",     lib.loc = lib.location)
+require("rpart",     lib.loc = lib.location)
+require("ROCR",     lib.loc = lib.location)
+require("ROSE",     lib.loc = lib.location)
+require("randomForest",     lib.loc = lib.location)
+require("caretEnsemble",     lib.loc = lib.location)
+require("gbm",     lib.loc = lib.location)
+require('doParallel',     lib = lib.location)
+require("xgboost",  lib.loc = lib.location)
+require("dplyr",  lib.loc = lib.location)
+require("fmsb",  lib.loc = lib.location)
+
+
+# Assign all categorical variables names to a variable
+cols <- c("cat_flag",	"resp_flag",	"fi_flag", 
+          "comp_var", "retail_enrol_flag",	"cig_cluster")
+
+validation.set_2 <- fread("hha_sample_29thnov.csv")
+
+str(validation.set_2)
+
+validation.set_2[,(cols) := lapply(.SD, factor), .SDcols=cols]
+
+do.call("cbind", lapply(data[,cols], as.factor)
+
+
+base.data.train <- validation.set_2
+  
+#Extracting the default class of all the variables 
+#-------------------------------------------------
+var.names.class     <- unlist(lapply(base.data.train, class))
+df.var.names.class  <- cbind.data.frame(names(var.names.class), var.names.class)
+
+colnames(df.var.names.class) <- c("names", "class")
+rownames(df.var.names.class) <- NULL
+
+#Extracting unique levels for each variable 
+#------------------------------------------
+unique.values         <- unlist(lapply(base.data.train, function(x){return(length(unique(x)))}))
+df.var.unique.values  <- cbind.data.frame(names(unique.values), unique.values)
+
+colnames(df.var.unique.values) <- c("names", "unique_values")
+rownames(df.var.unique.values) <- NULL
+
+#Categorizing variables by unique Classes 
+#----------------------------------------
+cont.vars.index <- which(df.var.unique.values$unique_values > 10 )
+
+df.var.unique.values$type                   <- ""
+df.var.unique.values$type[cont.vars.index]  <- "continuous"
+df.var.unique.values$type[-cont.vars.index] <- "categorical"
+
+df.variable.properties <- cbind.data.frame(df.var.names.class$names, df.var.names.class$class, 
+                                           df.var.unique.values$unique_values, df.var.unique.values$type)
+
+colnames(df.variable.properties) <- c("names", "class", "unique_values", "type")
+rownames(df.variable.properties) <- NULL
+
+# count of Events & Non Events for all categorical variables 
+#-----------------------------------------------------------
+categorical.vars <- df.variable.properties$names[which(df.variable.properties$type=="categorical")]
+
+df.bins.count <- NULL
+
+for(var in categorical.vars){
+  
+  df.temp          <- as.data.frame(acast(base.data.train, paste0(var,"~ resp_flag"), length))
+  df.temp$variable <- var
+  df.bins.count    <- rbind.data.frame(df.bins.count, cbind(rownames(df.temp), df.temp))
+}
+
+colnames(df.bins.count) <- c("bins","0", "1", "variable")
+rownames(df.bins.count) <- NULL
+write.csv(df.bins.count, "categorical_event_nonevent_7thdec.csv")
+
+df.categorical.vars <- base.data.train[, which(colnames(base.data.train)%in% categorical.vars)]
+
+
+#Optimal binning for all the remaining continuous variables 
+#----------------------------------------------------------
+continuous.vars <- df.variable.properties$names[which(df.variable.properties$type=="continuous")]
+df.binned.vars  <- NULL
+
+i <- 1 
+df.binned.vars.colnames <- c()
+var.cuts                <- c()
+
+for(var in continuous.vars[1:length(continuous.vars)]){
+  
+  eval(parse(text = paste0("temp.bin.obj <- smbinning(df=base.data.train, y = 'resp_flag', x = '",var,"')")))
+  if(length(temp.bin.obj) > 1){
+    temp.df                 <- smbinning.gen(base.data.train, temp.bin.obj, chrname = paste0(as.character(var),"_bin"))
+    df.binned.vars          <- cbind(df.binned.vars, as.character(temp.df[paste0(as.character(var),"_bin")][,1]))
+    df.binned.vars.colnames <- c(df.binned.vars.colnames, var)
+    var.cuts                <- c(var.cuts, paste(temp.bin.obj$cuts, collapse = ", "))
+  }
+  print(i)
+  i <- i + 1
+}
+
+temp                          <- df.binned.vars
+df.binned.vars                <- as.data.frame(df.binned.vars)
+colnames(df.binned.vars)      <- paste0(df.binned.vars.colnames,"_bin")
+df.var.cuts                   <- cbind.data.frame(colnames(df.binned.vars), var.cuts)
+df.binned.vars$resp_flag     <- base.data.train$resp_flag
+
+write.csv(df.binned.vars, "binned_continuous_vars_1_250_UP_7thdec.csv", row.names = FALSE)
+write.csv(df.var.cuts, "continuous_vars_cut_points_1_250_UP_7thdec.csv", row.names = FALSE)
+
+
+bins.conts.vars     <- read.csv("binned_continuous_vars_1_250_UP_7thdec.csv")
+
+
+bins.conts    <- colnames(bins.conts.vars)
+df.bins.count <- NULL
+
+for(var in bins.conts){
+  
+  df.temp          <- as.data.frame(acast(bins.conts.vars, paste0(var,"~ resp_flag"), length))
+  df.temp$variable <- var
+  df.bins.count    <- rbind.data.frame(df.bins.count, cbind(rownames(df.temp), df.temp))
+}
+
+colnames(df.bins.count) <- c("bins","0", "1", "variable")
+rownames(df.bins.count) <- NULL
+
+write.csv(df.bins.count, "binned_cont_event_nonevent_7thdec.csv")

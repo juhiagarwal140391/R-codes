@@ -1,0 +1,24 @@
+If cig_cluster="A" then cig_clEncode=1;
+else If cig_cluster="B" then cig_clEncode=2;
+else If cig_cluster="C" then cig_clEncode=3;
+else If cig_cluster="D" then cig_clEncode=4;
+else If cig_cluster="E" then cig_clEncode=5;
+else If cig_cluster="F" then cig_clEncode=6;
+else If cig_cluster="G" then cig_clEncode=7;
+else If cig_cluster="H" then cig_clEncode=8;
+else If cig_cluster="I" then cig_clEncode=9;
+else If cig_cluster="J" then cig_clEncode=10;
+else If cig_cluster="K" then cig_clEncode=11;
+else If cig_cluster="L" then cig_clEncode=12;
+else If cig_cluster="M" then cig_clEncode=13;
+else If cig_cluster="N" then cig_clEncode=14;
+else If cig_cluster="O" then cig_clEncode=15;
+else If cig_cluster="P" then cig_clEncode=16;
+else If cig_cluster="Q" then cig_clEncode=17;
+else If cig_cluster="" then cig_clEncode=18;
+
+If stat_dstnc="dBlack" then stat_dstnc_encode=1;
+else If stat_dstnc="dDiamond" then stat_dstnc_encode=2;
+else If stat_dstnc="dSilver" then stat_dstnc_encode=3;
+else If stat_dstnc="Other" then stat_dstnc_encode=4;
+else If stat_dstnc="No Level Distinction" then stat_dstnc_encode=5;
